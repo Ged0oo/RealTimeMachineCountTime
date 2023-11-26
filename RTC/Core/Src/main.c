@@ -108,7 +108,7 @@ void set_time (void)
 }
 
 
-volatile int n=0,f=0;
+volatile int TotalCounts=0,FlagDetect=0;
 
 void LcdUpdate()
 {
@@ -122,22 +122,22 @@ void MinDetect()
 {
 	for(int i=0 ; i<2 ; i++)
 	{
-		if((ArrayCounter[i][1] -1 == CurrentSec) && f==0)
+		if((ArrayCounter[i][1] -1 == CurrentSec) && FlagDetect==0)
 		{
 			ArrayTimers[i]--;
-			f=1;
+			FlagDetect=1;
 			LcdUpdate();
 		}
 	}
 
 	if((ArrayCounter[0][1] == CurrentSec) || (ArrayCounter[1][1] == CurrentSec) || CurrentSec==1)
-		f=0;
+		FlagDetect=0;
 
-	if(CurrentSec == 59 && f==0)
+	if(CurrentSec == 59 && FlagDetect==0)
 	{
-		n++;
-		f=1;
-		LCD_WriteNumber_Position(n,1,1);
+		TotalCounts++;
+		FlagDetect=1;
+		LCD_WriteNumber_Position(TotalCounts,1,1);
 	}
 
 	LCD_WriteNumber_Position(CurrentMin,1,5);
@@ -153,16 +153,18 @@ void get_time(void)
 
    //Get the RTC current Time
   HAL_RTC_GetTime(&hrtc, &gTime, RTC_FORMAT_BIN);
+
   // Get the RTC current Date
   HAL_RTC_GetDate(&hrtc, &gDate, RTC_FORMAT_BIN);
+
   CurrentSec = gTime.Seconds;
   CurrentMin = gTime.Minutes;
+
    //Display time Format: hh:mm:ss
   sprintf((char*)time,"%02d:%02d:%02d",gTime.Hours, gTime.Minutes, gTime.Seconds);
 
-  sprintf((char*)date,"%02d-%02d-%2d",gDate.Date, gDate.Month, 2000 + gDate.Year);  // I like the date first
-
   // Display date Format: mm-dd-yy
+  sprintf((char*)date,"%02d-%02d-%2d",gDate.Date, gDate.Month, 2000 + gDate.Year);
 }
 
 
@@ -221,12 +223,11 @@ int main(void)
   ArrayCounter[1][1] = 35;
 
   set_time();
-  HAL_Delay(1000);
+  HAL_Delay(100);
   LcdUpdate();
-  LCD_WriteNumber_Position(n,1,1);
+  LCD_WriteNumber_Position(TotalCounts,1,1);
   uint8_t k=22;
 
-	//LCD_Send_String_Pos("the ADC value = ", 1, 2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -236,9 +237,10 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  get_time();
-	  MinDetect();
-	 HAL_Delay(1500);
+
+	 get_time();
+	 MinDetect();
+	 HAL_Delay(100);
 
   }
   /* USER CODE END 3 */
