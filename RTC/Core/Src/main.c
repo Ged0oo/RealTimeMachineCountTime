@@ -17,7 +17,6 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-
 #include "main.h"
 #include "rtc.h"
 #include "gpio.h"
@@ -63,9 +62,9 @@ volatile int TotalDays=0;
 #define Counter_1	10
 #define Counter_2	15
 
-uint8_t ArrayCounter[2][2] = {0};
-uint8_t ArrayTimers[2] = {5, 6};
-uint8_t ArrayPosition[2] = {Counter_1, Counter_2};
+uint16_t ArrayCounter[2][2] = {0};
+uint16_t ArrayTimers[2] = {5, 6};
+uint16_t ArrayPosition[2] = {Counter_1, Counter_2};
 
 /* USER CODE END PM */
 
@@ -167,6 +166,25 @@ void get_time(void)
   sprintf((char*)date,"%02d-%02d-%2d",gDate.Date, gDate.Month, 2000 + gDate.Year);
 }
 
+uint16_t GetKeypadValue()
+{
+	uint16_t retVal = 0;
+	keypadVal = NOTPRESSED;
+
+	while(keypadVal != '*')
+	{
+		keypadVal = read_keypad(&keypad_1);
+		if(keypadVal>='0' && keypadVal<='9')
+		{
+			retVal = ((keypadVal - '0') + (retVal * 10));
+			keypadVal = NOTPRESSED;
+		}
+	}
+
+	keypadVal = NOTPRESSED;
+	return retVal;
+}
+
 
 /* USER CODE END PV */
 
@@ -214,16 +232,22 @@ int main(void)
 
 	MRCC_voidPeripheralClockEnable(RCC_APB2_BUS , RCC_GPIOA_CLOCK);
 	MRCC_voidPeripheralClockEnable(RCC_APB2_BUS , RCC_GPIOB_CLOCK);
+
 	lcd_4bit_intialize(&lcd_1);
 
-  ArrayCounter[0][0] = 20;
-  ArrayCounter[0][1] = 20;
+	lcd_4bit_send_string_pos(&lcd_1, 1, 1, "Enter 1st Mins");
+	ArrayCounter[0][0] = GetKeypadValue();
 
-  ArrayCounter[1][0] = 40;
-  ArrayCounter[1][1] = 35;
+	lcd_4bit_send_string_pos(&lcd_1, 1, 1, "Enter 1st Secs");
+	ArrayCounter[0][1] = GetKeypadValue();
+
+	lcd_4bit_send_string_pos(&lcd_1, 1, 1, "Enter 2nd Mins");
+	ArrayCounter[1][0] = GetKeypadValue();
+
+	lcd_4bit_send_string_pos(&lcd_1, 1, 1, "Enter 2nd Secs");
+	ArrayCounter[1][1] = GetKeypadValue();
 
   set_time();
-  HAL_Delay(100);
   LcdUpdate();
   LCD_WriteNumber_Position(TotalCounts,1,1);
   uint8_t k=22;

@@ -13,10 +13,10 @@
 
 
 #define			ROW_PORT			GPIOA
-#define			ROW_PIN_0			GPIO_PIN_10
-#define			ROW_PIN_1			GPIO_PIN_11
-#define			ROW_PIN_2			GPIO_PIN_12
-#define			ROW_PIN_3			GPIO_PIN_15
+#define			ROW_PIN_0			GPIO_PIN_9
+#define			ROW_PIN_1			GPIO_PIN_10
+#define			ROW_PIN_2			GPIO_PIN_11
+#define			ROW_PIN_3			GPIO_PIN_12
 
 
 #define			COLUMN_PORT			GPIOB
@@ -24,7 +24,6 @@
 #define			COLUMN_PIN_1		GPIO_PIN_4
 #define			COLUMN_PIN_2		GPIO_PIN_5
 #define			COLUMN_PIN_3		GPIO_PIN_6
-
 
 
 #endif

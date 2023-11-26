@@ -1,7 +1,8 @@
-../Core/Src/main.c:76:6:set_time	16	static
-../Core/Src/main.c:113:6:LcdUpdate	16	static
-../Core/Src/main.c:121:6:MinDetect	16	static
-../Core/Src/main.c:149:6:get_time	24	static
-../Core/Src/main.c:188:5:main	16	static
-../Core/Src/main.c:253:6:SystemClock_Config	88	static
-../Core/Src/main.c:303:6:Error_Handler	4	static,ignoring_inline_asm
+../Core/Src/main.c:75:6:set_time	16	static
+../Core/Src/main.c:112:6:LcdUpdate	16	static
+../Core/Src/main.c:120:6:MinDetect	16	static
+../Core/Src/main.c:148:6:get_time	24	static
+../Core/Src/main.c:169:10:GetKeypadValue	16	static
+../Core/Src/main.c:206:5:main	16	static
+../Core/Src/main.c:277:6:SystemClock_Config	88	static
+../Core/Src/main.c:327:6:Error_Handler	4	static,ignoring_inline_asm
