@@ -59,11 +59,15 @@ volatile int CurrentSec=0;
 volatile int CurrentMin=0;
 volatile int TotalDays=0;
 
+volatile uint8_t IntialMinuts = 0x30;
+volatile uint8_t IntialSeconds = 0x20;
+volatile uint8_t IntialHours = 0;
+
 #define Counter_1	10
 #define Counter_2	15
 
 uint16_t ArrayCounter[2][2] = {0};
-uint16_t ArrayTimers[2] = {5, 6};
+uint16_t ArrayTimers[2] = {0};
 uint16_t ArrayPosition[2] = {Counter_1, Counter_2};
 
 /* USER CODE END PM */
@@ -78,9 +82,9 @@ void set_time (void)
 	  RTC_DateTypeDef sDate;
     /**Initialize RTC and set the Time and Date
     */
-  sTime.Hours = 0x10;
-  sTime.Minutes = 0x20;
-  sTime.Seconds = 0x30;
+  sTime.Hours = IntialHours;
+  sTime.Minutes = IntialMinuts;
+  sTime.Seconds = IntialSeconds;
 
   if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
   {
@@ -176,6 +180,7 @@ uint16_t GetKeypadValue()
 		keypadVal = read_keypad(&keypad_1);
 		if(keypadVal>='0' && keypadVal<='9')
 		{
+			lcd_4bit_send_char_data(&lcd_1, keypadVal);
 			retVal = ((keypadVal - '0') + (retVal * 10));
 			keypadVal = NOTPRESSED;
 		}
@@ -235,18 +240,33 @@ int main(void)
 
 	lcd_4bit_intialize(&lcd_1);
 
-	lcd_4bit_send_string_pos(&lcd_1, 1, 1, "Enter 1st Mins");
+	LCD_Clear(&lcd_1);
+	lcd_4bit_send_string_pos(&lcd_1, 1, 2, "1st Mins :");
 	ArrayCounter[0][0] = GetKeypadValue();
 
-	lcd_4bit_send_string_pos(&lcd_1, 1, 1, "Enter 1st Secs");
+	LCD_Clear(&lcd_1);
+	lcd_4bit_send_string_pos(&lcd_1, 1, 2, "1st Secs :");
 	ArrayCounter[0][1] = GetKeypadValue();
 
-	lcd_4bit_send_string_pos(&lcd_1, 1, 1, "Enter 2nd Mins");
+	LCD_Clear(&lcd_1);
+	lcd_4bit_send_string_pos(&lcd_1, 1, 2, "2nd Mins :");
 	ArrayCounter[1][0] = GetKeypadValue();
 
-	lcd_4bit_send_string_pos(&lcd_1, 1, 1, "Enter 2nd Secs");
+	LCD_Clear(&lcd_1);
+	lcd_4bit_send_string_pos(&lcd_1, 1, 2, "2nd Secs :");
 	ArrayCounter[1][1] = GetKeypadValue();
 
+
+	LCD_Clear(&lcd_1);
+	lcd_4bit_send_string_pos(&lcd_1, 1, 2, "Intial Timer 1:");
+	ArrayTimers[0] = GetKeypadValue();
+
+	LCD_Clear(&lcd_1);
+	lcd_4bit_send_string_pos(&lcd_1, 1, 2, "Intial Timer 2:");
+	ArrayTimers[1] = GetKeypadValue();
+
+
+	LCD_Clear(&lcd_1);
   set_time();
   LcdUpdate();
   LCD_WriteNumber_Position(TotalCounts,1,1);
