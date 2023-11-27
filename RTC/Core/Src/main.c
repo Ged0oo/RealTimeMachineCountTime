@@ -63,7 +63,7 @@ volatile int CurrentMin=0;
 volatile int TotalDays=0;
 
 volatile uint8_t IntialMinuts = 0x00;
-volatile uint8_t IntialSeconds = 0x00;
+volatile uint8_t IntialSeconds = 0x06;
 volatile uint8_t IntialHours = 0;
 
 #define Counter_1	8
