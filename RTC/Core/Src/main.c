@@ -45,6 +45,9 @@
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 
+RTC_DateTypeDef gDate;
+RTC_TimeTypeDef gTime;
+
 uint8_t keypadVal = NOTPRESSED;
 
 extern RCC_Config_t RCC_obj;
@@ -59,16 +62,20 @@ volatile int CurrentSec=0;
 volatile int CurrentMin=0;
 volatile int TotalDays=0;
 
-volatile uint8_t IntialMinuts = 0x30;
-volatile uint8_t IntialSeconds = 0x20;
+volatile uint8_t IntialMinuts = 0x00;
+volatile uint8_t IntialSeconds = 0x00;
 volatile uint8_t IntialHours = 0;
 
-#define Counter_1	10
-#define Counter_2	15
+#define Counter_1	8
+#define Counter_2	12
 
 uint16_t ArrayCounter[2][2] = {0};
 uint16_t ArrayTimers[2] = {0};
 uint16_t ArrayPosition[2] = {Counter_1, Counter_2};
+
+uint16_t TotalCounts=0;
+volatile uint16_t FlagDetect=0;
+
 
 /* USER CODE END PM */
 
@@ -78,15 +85,14 @@ uint16_t ArrayPosition[2] = {Counter_1, Counter_2};
 
 void set_time (void)
 {
-	  RTC_TimeTypeDef sTime;
-	  RTC_DateTypeDef sDate;
-    /**Initialize RTC and set the Time and Date
-    */
-  sTime.Hours = IntialHours;
-  sTime.Minutes = IntialMinuts;
-  sTime.Seconds = IntialSeconds;
+    /*
+     * Initialize RTC and set the Time and Date
+     */
+  gTime.Hours = IntialHours;
+  gTime.Minutes = IntialMinuts;
+  gTime.Seconds = IntialSeconds;
 
-  if (HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BCD) != HAL_OK)
+  if (HAL_RTC_SetTime(&hrtc, &gTime, RTC_FORMAT_BCD) != HAL_OK)
   {
     //_Error_Handler(__FILE__, __LINE__);
   }
@@ -94,12 +100,12 @@ void set_time (void)
 
   /* USER CODE END RTC_Init 3 */
 
-  sDate.WeekDay = RTC_WEEKDAY_TUESDAY;
-  sDate.Month = RTC_MONTH_AUGUST;
-  sDate.Date = 0x12;
-  sDate.Year = 0x0;
+  gDate.WeekDay = RTC_WEEKDAY_TUESDAY;
+  gDate.Month = RTC_MONTH_AUGUST;
+  gDate.Date = 0x12;
+  gDate.Year = 0x0;
 
-  if (HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BCD) != HAL_OK)
+  if (HAL_RTC_SetDate(&hrtc, &gDate, RTC_FORMAT_BCD) != HAL_OK)
   {
     //_Error_Handler(__FILE__, __LINE__);
   }
@@ -111,10 +117,12 @@ void set_time (void)
 }
 
 
-volatile int TotalCounts=0,FlagDetect=0;
-
 void LcdUpdate()
 {
+	LCD_Clear(&lcd_1);
+	HAL_Delay(10);
+	LCD_WriteNumber_Position(TotalCounts,1,4);
+	HAL_Delay(10);
 	for(int i=0 ; i<2 ; i++)
 	{
 		LCD_WriteNumber_Position(ArrayTimers[i], 1, ArrayPosition[i]);
@@ -125,7 +133,7 @@ void MinDetect()
 {
 	for(int i=0 ; i<2 ; i++)
 	{
-		if((ArrayCounter[i][1] -1 == CurrentSec) && FlagDetect==0)
+		if( ( CurrentSec-1 == ArrayCounter[i][1]) && FlagDetect==0 )
 		{
 			ArrayTimers[i]--;
 			FlagDetect=1;
@@ -133,41 +141,26 @@ void MinDetect()
 		}
 	}
 
-	if((ArrayCounter[0][1] == CurrentSec) || (ArrayCounter[1][1] == CurrentSec) || CurrentSec==1)
+	if((CurrentSec == ArrayCounter[0][1]) || (CurrentSec == ArrayCounter[1][1]) || CurrentSec==1)
 		FlagDetect=0;
 
 	if(CurrentSec == 59 && FlagDetect==0)
 	{
 		TotalCounts++;
 		FlagDetect=1;
-		LCD_WriteNumber_Position(TotalCounts,1,1);
+		LcdUpdate();
 	}
 
-	LCD_WriteNumber_Position(CurrentMin,1,5);
-	LCD_WriteNumber_Position(CurrentSec,2,5);
+	//LCD_WriteNumber_Position(CurrentMin,1,5);
+	//LCD_WriteNumber_Position(CurrentSec,2,5);
 
-	/* LCD Prnt */
 }
 
 void get_time(void)
 {
-  RTC_DateTypeDef gDate;
-  RTC_TimeTypeDef gTime;
-
-   //Get the RTC current Time
   HAL_RTC_GetTime(&hrtc, &gTime, RTC_FORMAT_BIN);
-
-  // Get the RTC current Date
-  HAL_RTC_GetDate(&hrtc, &gDate, RTC_FORMAT_BIN);
-
   CurrentSec = gTime.Seconds;
   CurrentMin = gTime.Minutes;
-
-   //Display time Format: hh:mm:ss
-  sprintf((char*)time,"%02d:%02d:%02d",gTime.Hours, gTime.Minutes, gTime.Seconds);
-
-  // Display date Format: mm-dd-yy
-  sprintf((char*)date,"%02d-%02d-%2d",gDate.Date, gDate.Month, 2000 + gDate.Year);
 }
 
 uint16_t GetKeypadValue()
@@ -237,25 +230,14 @@ int main(void)
 
 	MRCC_voidPeripheralClockEnable(RCC_APB2_BUS , RCC_GPIOA_CLOCK);
 	MRCC_voidPeripheralClockEnable(RCC_APB2_BUS , RCC_GPIOB_CLOCK);
+	set_time();
 
 	lcd_4bit_intialize(&lcd_1);
 
-	LCD_Clear(&lcd_1);
-	lcd_4bit_send_string_pos(&lcd_1, 1, 2, "1st Mins :");
-	ArrayCounter[0][0] = GetKeypadValue();
-
-	LCD_Clear(&lcd_1);
-	lcd_4bit_send_string_pos(&lcd_1, 1, 2, "1st Secs :");
-	ArrayCounter[0][1] = GetKeypadValue();
-
-	LCD_Clear(&lcd_1);
-	lcd_4bit_send_string_pos(&lcd_1, 1, 2, "2nd Mins :");
-	ArrayCounter[1][0] = GetKeypadValue();
-
-	LCD_Clear(&lcd_1);
-	lcd_4bit_send_string_pos(&lcd_1, 1, 2, "2nd Secs :");
-	ArrayCounter[1][1] = GetKeypadValue();
-
+	ArrayCounter[0][0] = gTime.Minutes;
+	ArrayCounter[0][1] = gTime.Seconds+2;
+	ArrayCounter[1][0] = gTime.Minutes;
+	ArrayCounter[1][1] = gTime.Seconds+4;
 
 	LCD_Clear(&lcd_1);
 	lcd_4bit_send_string_pos(&lcd_1, 1, 2, "Intial Timer 1:");
@@ -265,12 +247,7 @@ int main(void)
 	lcd_4bit_send_string_pos(&lcd_1, 1, 2, "Intial Timer 2:");
 	ArrayTimers[1] = GetKeypadValue();
 
-
-	LCD_Clear(&lcd_1);
-  set_time();
-  LcdUpdate();
-  LCD_WriteNumber_Position(TotalCounts,1,1);
-  uint8_t k=22;
+	LcdUpdate();
 
   /* USER CODE END 2 */
 
@@ -284,7 +261,6 @@ int main(void)
 
 	 get_time();
 	 MinDetect();
-	 HAL_Delay(100);
 
   }
   /* USER CODE END 3 */
